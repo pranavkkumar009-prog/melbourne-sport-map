@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Melbourne Sport Map - Live Directory</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  
+  <style>
+    body { background-color: #f4f7f6; color: #333; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+    #nav-bar { display: flex; justify-content: space-between; align-items: center; background-color: #2c3e50; color: white; padding: 15px 30px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .nav-logo { font-size: 22px; font-weight: bold; }
+    .dropdown { position: relative; display: inline-block; }
+    .dropbtn { background: transparent; color: white; border: none; font-size: 24px; cursor: pointer; }
+    .dropdown-content { display: none; position: absolute; right: 0; background-color: white; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-radius: 8px; }
+    .dropdown-content a { color: #333; padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; cursor: pointer; }
+    .dropdown-content a:hover { background-color: #f1f1f1; }
+    .dropdown:hover .dropdown-content { display: block; }
+    .container { padding: 30px; max-width: 1400px; margin: auto; }
+    .header-box { background: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .table-wrapper { background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    thead { background-color: #2980b9; color: white; }
+    th { padding: 15px; text-align: left; font-size: 12px; text-transform: uppercase; }
+    td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
+    .booking-btn { background: #27ae60; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold; }
+    .region-tag { color: #7f8c8d; font-size: 11px; display: block; }
+  </style>
+</head>
+<body onload="initApp()">
+
+  <div id="nav-bar">
+    <div class="nav-logo" id="main-logo">🎾 Melbourne Sport Map</div>
+    <div class="dropdown">
+      <button class="dropbtn">☰</button>
+      <div class="dropdown-content">
+        <a onclick="loadSport('Badminton')">🏸 Badminton Directory</a>
+        <a onclick="loadSport('Tennis')">🎾 Tennis Directory</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header-box">
+      <h1 id="page-title">🏆 Sport Venue Directory</h1>
+      <p style="color: #7f8c8d;">Syncing live data from your CSV files...</p>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Venue Name</th>
+            <th>Suburb & Region</th>
+            <th>Hours</th>
+            <th>Price Est.</th>
+            <th>Booking</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let currentData = [];
+
+    function initApp() {
+      // Start with Tennis by default
+      loadSport('Tennis');
+    }
+
+    function loadSport(sport) {
+      const fileName = sport === 'Tennis' ? 'Melbourne_Tennis_Courts_Directory.csv' : 'Melbourne_Badminton_Courts_Directory.csv';
+      const emoji = sport === 'Tennis' ? '🎾' : '🏸';
+      
+      document.getElementById('main-logo').innerText = `${emoji} Melbourne Sport Map`;
+      document.getElementById('page-title').innerText = `🏆 ${sport} Venue Directory`;
+
+      // Fetch and parse the CSV file directly
+      Papa.parse(fileName, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          console.log(`Loaded ${results.data.length} entries from ${fileName}`);
+          renderTable(results.data);
+        },
+        error: function(err) {
+          console.error("Error loading CSV:", err);
+          document.getElementById('table-body').innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Could not find ${fileName}. Please ensure it is in the same folder as this HTML file.</td></tr>`;
+        }
+      });
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = ''; // Clear current rows
+
+      data.forEach(row => {
+        // Adjust column names based on your CSV headers
+        const name = row.name || "N/A";
+        const suburb = row.suburb || "N/A";
+        const region = row.region ? row.region.charAt(0).toUpperCase() + row.region.slice(1) : "Melbourne";
+        const hours = (row.hours || "Check Website").replace(/\n/g, ' ');
+        const price = row.price || "Contact Venue";
+        const link = row.booking && row.booking !== 'Check website' ? row.booking : row.website;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${name}</strong></td>
+          <td>${suburb}<span class="region-tag">${region}</span></td>
+          <td>${hours}</td>
+          <td style="font-weight:600;">${price}</td>
+          <td><a href="${link}" target="_blank" class="booking-btn">BOOKING ↗</a></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -3,27 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Melbourne Sport Map | Live Directory</title>
-    
+    <title>Melbourne Sport Map</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    
     <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #2980b9;
-            --success: #27ae60;
-            --bg: #f4f7f6;
-        }
-
-        body { 
-            background-color: var(--bg); 
-            color: #333; 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-        }
-
-        /* Navigation Bar */
+        :root { --primary: #2c3e50; --accent: #2980b9; --success: #27ae60; --error: #e74c3c; --hover-bg: #f9f9f9; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+        
+        /* Navigation */
         #nav-bar { 
             display: flex; 
             justify-content: space-between; 
@@ -33,209 +19,181 @@
             padding: 15px 30px; 
             position: sticky; 
             top: 0; 
-            z-index: 1000; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            z-index: 1000;
         }
 
-        .nav-logo { font-size: 22px; font-weight: bold; letter-spacing: 1px; }
-
+        /* Dropdown Menu */
         .dropdown { position: relative; display: inline-block; }
         .dropbtn { 
-            background: rgba(255,255,255,0.1); 
+            background: var(--accent); 
             color: white; 
-            border: 1px solid rgba(255,255,255,0.3); 
-            padding: 8px 15px; 
+            border: none; 
+            padding: 10px 25px; 
             border-radius: 5px; 
-            font-size: 18px; 
+            font-size: 16px; 
             cursor: pointer; 
-            transition: 0.3s;
+            font-weight: bold;
         }
-        .dropbtn:hover { background: rgba(255,255,255,0.2); }
-
         .dropdown-content { 
             display: none; 
             position: absolute; 
             right: 0; 
             background-color: white; 
-            min-width: 220px; 
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15); 
-            border-radius: 8px; 
-            overflow: hidden; 
-            margin-top: 10px;
+            min-width: 180px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); 
+            border-radius: 5px;
+            z-index: 1001;
         }
-        .dropdown-content a { 
-            color: var(--primary); 
-            padding: 12px 16px; 
-            text-decoration: none; 
-            display: block; 
-            font-size: 14px; 
-            font-weight: 500;
-        }
-        .dropdown-content a:hover { background-color: #f1f1f1; color: var(--accent); }
         .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a { color: #333; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
 
-        /* Main Content */
-        .container { padding: 40px 20px; max-width: 1300px; margin: auto; }
+        .container { padding: 20px; max-width: 1400px; margin: auto; }
+        .header-box { background: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; border: 1px solid #ddd; }
         
-        .header-box { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 15px; 
-            text-align: center; 
-            margin-bottom: 30px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-        }
-
-        .table-wrapper { 
-            background: white; 
-            border-radius: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            border: 1px solid #e0e0e0; 
+        /* Map Window Styling */
+        .map-container { 
+            width: 100%; 
+            height: 400px; 
+            background: #eee; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
             overflow: hidden; 
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        thead { background-color: var(--accent); color: white; }
-        th { padding: 20px 15px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-        td { padding: 18px 15px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; }
-
-        .venue-name { color: var(--primary); font-weight: 700; font-size: 16px; }
-        .suburb-text { font-weight: 600; display: block; }
-        .region-tag { font-size: 11px; color: #7f8c8d; text-transform: uppercase; display: block; margin-top: 4px; }
+        /* Layout & Fixed Column Spacing */
+        .table-wrapper { background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed; }
         
-        .booking-btn { 
-            display: inline-block; 
-            background: var(--success); 
-            color: white; 
-            padding: 10px 18px; 
-            border-radius: 6px; 
+        thead { background-color: #eee; color: #333; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #ddd; font-size: 14px; overflow: hidden; word-wrap: break-word; }
+        
+        /* Row Highlight */
+        tbody tr:hover { background-color: var(--hover-bg); transition: background-color 0.2s ease; }
+
+        /* Strict Column Width Assignments */
+        .col-name { width: 28%; }
+        .col-suburb { width: 22%; }
+        .col-hours { width: 25%; }
+        .col-price { width: 15%; }
+        .col-book { width: 10%; }
+
+        .venue-link { color: var(--accent); font-weight: bold; text-decoration: none; }
+        .venue-link:hover { text-decoration: underline; color: #1a5276; }
+        
+        .btn-book { 
+            padding: 8px 12px; 
+            border-radius: 4px; 
             text-decoration: none; 
             font-size: 12px; 
             font-weight: bold; 
-            transition: 0.3s; 
-            text-align: center;
+            color: white; 
+            display: inline-block; 
+            background: var(--success); 
         }
-        .booking-btn:hover { background: #219150; transform: translateY(-1px); }
-
-        #sync-status { font-weight: 500; margin-top: 10px; font-size: 14px; }
     </style>
 </head>
 <body onload="initApp()">
 
-    <nav id="nav-bar">
-        <div class="nav-logo" id="main-logo">🎾 Melbourne Sport Map</div>
+    <div id="nav-bar">
+        <div style="font-size: 20px; font-weight: bold;">Melbourne Sport Map</div>
         <div class="dropdown">
-            <button class="dropbtn">☰ Menu</button>
+            <button class="dropbtn">Menu ▾</button>
             <div class="dropdown-content">
-                <a onclick="loadSport('Tennis')">🎾 Tennis Directory</a>
-                <a onclick="loadSport('Badminton')">🏸 Badminton Directory</a>
+                <a onclick="loadSport('Tennis')">Tennis</a>
+                <a onclick="loadSport('Badminton')">Badminton</a>
+                <a onclick="loadSport('Basketball')">Basketball</a>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <main class="container">
-        <header class="header-box">
-            <h1 id="page-title" style="margin:0; font-size: 2.5em; color: var(--primary);">Venue Directory</h1>
-            <p id="sync-status" style="color: #7f8c8d;">Initializing Live Sync...</p>
-        </header>
+    <div class="container">
+        <div class="header-box">
+            <h1 id="page-title" style="margin:0;">Directory</h1>
+        </div>
 
-        <section class="table-wrapper">
+        <div class="map-container" id="map-box">
+            <iframe id="google-map" src="about:blank"></iframe>
+        </div>
+
+        <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
-                        <th width="25%">Venue Name</th>
-                        <th width="20%">Suburb & Region</th>
-                        <th width="25%">Operating Hours</th>
-                        <th width="15%">Price Estimate</th>
-                        <th width="15%">Action</th>
+                        <th class="col-name">Venue Name (Map Link)</th>
+                        <th class="col-suburb">Suburb & Region</th>
+                        <th class="col-hours">Hours</th>
+                        <th class="col-price">Price</th>
+                        <th class="col-book">Booking</th>
                     </tr>
                 </thead>
-                <tbody id="table-body">
-                    </tbody>
+                <tbody id="table-body"></tbody>
             </table>
-        </section>
-    </main>
+        </div>
+    </div>
 
     <script>
-        /**
-         * Core Logic: Fetching and Parsing
-         */
         function loadSport(sport) {
-            // Update the UI immediately
-            const fileName = sport === 'Tennis' ? 'Melbourne_Tennis_Courts_Directory.csv' : 'Melbourne_Badminton_Courts_Directory.csv';
-            const emoji = sport === 'Tennis' ? '🎾' : '🏸';
-            
-            document.getElementById('main-logo').innerText = `${emoji} Melbourne Sport Map`;
-            document.getElementById('page-title').innerText = `${sport} Venue Directory`;
-            document.getElementById('sync-status').style.color = "#7f8c8d";
-            document.getElementById('sync-status').innerText = `Syncing with GitHub: ${fileName}...`;
+            let fileName = '';
+            let mapQuery = '';
 
-            // PapaParse fetches the file from the relative path on GitHub Pages
+            if (sport === 'Tennis') {
+                fileName = 'Melbourne_Tennis_Courts_Directory.csv';
+                mapQuery = 'Tennis+Courts+Melbourne';
+            } else if (sport === 'Badminton') {
+                fileName = 'Melbourne_Badminton_Courts_Directory.CSV';
+                mapQuery = 'Badminton+Courts+Melbourne';
+            } else if (sport === 'Basketball') {
+                fileName = 'Melbourne_Basketball_Courts_Directory.csv';
+                mapQuery = 'Basketball+Courts+Melbourne';
+            }
+            
+            document.getElementById('page-title').innerText = `${sport} Directory`;
+            
+            // Update the Map Window for the selected sport
+            const mapFrame = document.getElementById('google-map');
+            mapFrame.src = `https://www.google.com/maps/embed/v1/search?key=YOUR_GOOGLE_MAPS_API_KEY&q=${mapQuery}&zoom=11`;
+            // NOTE: If you don't have an API key yet, I am using a search embed logic below that works for most browsers:
+            mapFrame.src = `https://maps.google.com/maps?q=${mapQuery}&t=&z=11&ie=UTF8&iwloc=&output=embed`;
+
             Papa.parse(fileName, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
                     renderTable(results.data);
-                    document.getElementById('sync-status').innerText = `✓ Live Sync Active: ${results.data.length} venues updated.`;
-                    document.getElementById('sync-status').style.color = "#27ae60";
                 },
-                error: function(err) {
-                    document.getElementById('sync-status').innerText = `Error: Could not find ${fileName}. Check GitHub filenames.`;
-                    document.getElementById('sync-status').style.color = "#e74c3c";
-                    document.getElementById('table-body').innerHTML = `
-                        <tr>
-                            <td colspan="5" style="text-align:center; padding:50px;">
-                                <p style="color:#e74c3c; font-weight:bold;">Data Unavailable</p>
-                                <p>Ensure "${fileName}" is uploaded to your GitHub repository.</p>
-                            </td>
-                        </tr>`;
+                error: function() {
+                    console.error("Error loading CSV file.");
                 }
             });
         }
 
-        /**
-         * UI Logic: Building the Table
-         */
         function renderTable(data) {
             const tbody = document.getElementById('table-body');
-            tbody.innerHTML = ''; 
+            tbody.innerHTML = '';
 
             data.forEach(row => {
-                // Mapping CSV columns to variables
-                const name = row.name || "Unnamed Venue";
-                const suburb = row.suburb || "Melbourne";
-                const region = row.region || "Metro";
-                
-                // Clean up multi-line hours from CSV for HTML
-                const hours = (row.hours || "Check Website").replace(/\n/g, '<br>');
-                
-                const price = row.price || "Contact Venue";
-                
-                // Determine the best link to use
-                const finalLink = row.booking && row.booking !== "Check website" ? row.booking : (row.website || "#");
-
+                if (!row.name) return;
                 const tr = document.createElement('tr');
+                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(row.name + ' ' + (row.suburb || ''))}`;
+                const bookUrl = (row.booking && row.booking !== "Check website") ? row.booking : (row.website || "#");
+
                 tr.innerHTML = `
-                    <td class="venue-name">${name}</td>
-                    <td>
-                        <span class="suburb-text">${suburb}</span>
-                        <span class="region-tag">${region} Melbourne</span>
-                    </td>
-                    <td style="line-height: 1.6;">${hours}</td>
-                    <td style="font-weight:700;">${price}</td>
-                    <td>
-                        <a href="${finalLink}" target="_blank" class="booking-btn">VIEW & BOOK ↗</a>
-                    </td>
+                    <td class="col-name"><a href="${mapUrl}" target="_blank" class="venue-link">${row.name} 📍</a></td>
+                    <td class="col-suburb">${row.suburb || ''}, ${row.region || ''}</td>
+                    <td class="col-hours" style="font-size:12px; color: #333;">${(row.hours || '').replace(/\n/g, '<br>')}</td>
+                    <td class="col-price" style="font-weight:bold;">${row.price || ''}</td>
+                    <td class="col-book"><a href="${bookUrl}" target="_blank" class="btn-book">BOOK</a></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // Initialize the page with Tennis data
-        function initApp() {
-            loadSport('Tennis');
-        }
+        function initApp() { loadSport('Tennis'); }
     </script>
 </body>
 </html>
